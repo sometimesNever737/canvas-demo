@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>base</title>
+</head>
+<body>
+  <canvas id="myCanvas" width="600" height="400">
+    您的浏览器不支持canvas，请更换浏览器
+  </canvas>
+  <button onclick="clearRect()">clearRect</button>
+  <script>
+    const canvasDom = document.getElementById('myCanvas') // 获取画布元素
+    const ctx = canvasDom.getContext('2d') // 获取canvas对象 2D绘图的上下文
+    ctx.font = '38px Arial' // 文本相关设置
+    ctx.fillStyle = 'orange' // 填充色
+    ctx.fillText('一些基础图形', 320, 300) // 绘制填充的文本
+    ctx.fillRect(50, 198, 50, 104) // 绘制矩形
+
+    ctx.beginPath() // 绘制路径开始
+    ctx.lineWidth = 3 // 线条宽度
+    ctx.strokeStyle = 'red' // 填充色
+    ctx.moveTo(100, 200) // 绘制起点(x, y)
+    ctx.lineTo(300, 300) // 绘制直线(x,y)
+    ctx.lineTo(100, 300)
+    ctx.closePath() // 绘制路径闭合 闭合路径会自动把结束的点和开始的线连在一起
+    ctx.stroke() // 绘制线段
+
+    ctx.beginPath()
+    ctx.lineWidth = 16
+    ctx.strokeStyle = 'blue'
+    ctx.fillStyle = 'green'
+    // 绘制圆形 圆心坐标 半径长度 初始角度 结束角度 顺时针、逆时针绘制
+    // (x,y,r,sAngle,eAngle,counterclockwise)
+    ctx.arc(220, 194, 50, 0, 1 * Math.PI, false)
+    ctx.stroke()
+    ctx.fill() // 是将闭合的路径的内容进行填充
+    ctx.beginPath()
+    ctx.strokeStyle = 'green'
+    ctx.fillStyle = 'blue'
+    ctx.arc(220, 194, 50, 0, 1 * Math.PI, true)
+    ctx.stroke()
+    ctx.fill()
+    ctx.beginPath()
+    ctx.fillStyle = 'red'
+    ctx.lineWidth = 2
+    ctx.rect(110, 240, 50, 50) // 绘制矩形 (x, y, width, height)
+    ctx.stroke()
+    ctx.fill()
+    const clearRect = () => {
+      ctx.clearRect(110, 240, 20, 20) // 清除对应坐标 矩形范围 (x, y, width, hegiht)
+    }
+  </script>
+</body>
+</html>

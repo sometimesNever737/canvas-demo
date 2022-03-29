@@ -1,0 +1,19 @@
+{
+  "name": "canvas-demo",
+  "version": "1.0.0",
+  "description": "canvas-demo",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sometimesNever737/canvas-demo.git"
+  },
+  "author": "qs",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sometimesNever737/canvas-demo/issues"
+  },
+  "homepage": "https://github.com/sometimesNever737/canvas-demo#readme"
+}
