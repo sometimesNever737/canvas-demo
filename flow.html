@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <body>
+    <canvas id="myCanvas">
+      您的浏览器不支持canvas，请更换浏览器
+    </canvas>
+    <script>
+      const canvasDom = document.getElementById('myCanvas')
+      const ctx = canvasDom.getContext('2d')
+      const getRandomFloat = (min, max) => (max - min) * Math.random() + min
+      const getRandomInt = (min, max) => Math.floor(getRandomFloat(min, max + 1))
+      class Container {
+        constructor() {
+          this.update()
+        }
+        update() {
+          this.width = window.innerWidth
+          this.height = window.innerHeight
+          this.center = {
+            x: this.width / 2,
+            y: this.height / 2
+          }
+          canvasDom.width = this.width
+          canvasDom.height = this.height
+        }
+      }
+      const _container = new Container()
+      const maxAmp = 250
+      const minAmp = 150
+      const numParticles = 120
+      class Tracks {
+        constructor() {
+          const numTracks = 20
+          this.tracks = []
+          for (let i = 0; i < numTracks; ++i) {
+            const ratio = i / numTracks
+            this.tracks.push({
+              amp: (maxAmp - minAmp) * ratio + minAmp
+            })
+          }
+        }
+      }
+      const { tracks } = new Tracks()
+      class Particle {
+        constructor() {
+          this.init()
+        }
+        init() {
+          this.baseAmp = tracks[getRandomInt(0, tracks.length - 1)].amp
+          this.rotSpeed = getRandomFloat(0.01, 0.015)
+          this.ampSpeed = 1
+          this.baseRad = 3
+          this.more = 10
+          this.num = 0
+          this.amp = this.baseAmp
+          this.rad = this.baseRad
+          this.angle = getRandomFloat(0, Math.PI * 2)
+          this.pos = {
+            x: 0,
+            y: 0
+          }
+        }
+        updateRadius() {
+          let ratio = this.amp / this.baseAmp * 2.5 - 1.5
+          this.rad = ratio * this.baseRad
+        }
+        updatePosition() {
+          this.angle += this.rotSpeed
+          this.pos.x = _container.center.x + this.amp * Math.cos(this.angle) * 1.2
+          this.pos.y =
+            _container.center.y + this.amp * Math.pow(Math.sin(this.angle), 3) * 0.8
+        }
+        draw() {
+          const { pos } = this
+          const ageAttack = this.num / this.more
+          const rad = this.rad * ageAttack
+          const alpha = ageAttack
+          ctx.beginPath()
+          ctx.arc(pos.x, pos.y, rad, 0, Math.PI * 2)
+          ctx.fillStyle = `rgba(${Math.floor(Math.random()*255)}, 255, 255, ${alpha}`
+          ctx.fill()
+        }
+        update() {
+          if (this.num < this.more) {
+            this.num++
+          }
+          this.amp -= this.ampSpeed
+          this.updateRadius()
+          if (this.rad > 0) {
+            this.updatePosition()
+            this.draw()
+          } else {
+            this.init()
+          }
+        }
+      }
+      class Emitter {
+        constructor() {
+          this.particles = [...Array(numParticles).keys()].map(
+            () => new Particle()
+          )
+        }
+        update() {
+          this.particles.forEach(particle => particle.update())
+        }
+      }
+      const emitter = new Emitter()
+      initCanvasColor = () => {
+        ctx.fillStyle = `rgba(255, 255, 255, 1)`
+        ctx.fillRect(0, 0, canvasDom.width, canvasDom.height)
+        ctx.fillStyle = `rgba(0, 0, 0, 0.08)`
+        ctx.fillRect(0, 0, canvasDom.width, canvasDom.height)
+      }
+      const render = () => {
+        ctx.fillStyle = `rgba(0, 0, 0, 0.08)`
+        ctx.fillRect(0, 0, canvasDom.width, canvasDom.height)
+        emitter.update()
+        requestAnimationFrame(render)
+      }
+      initCanvasColor()
+      render()
+    </script>
+  </body>
+</body>
+</html>
