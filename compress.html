@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文件压缩</title>
+</head>
+<body>
+  <input type="file" id="upload" />
+  <script>
+    const ACCEPT = ['image/jpg', 'image/png', 'image/jpeg'] // 允许的图片格式
+    const maxSize = 1024 * 1024 // 文件最大
+    const uploadDom = document.getElementById('upload') // 获取upload元素
+    const max = 1024 // 压缩图片尺寸边界
+    let fileType = '' // 保存文件类型 以及 名称 重新生成时进行回填
+    let fileName = ''
+    // base64读取 执行压缩回调
+    function converImgToBase64 (file, cb) {
+      let reader = new FileReader()
+      reader.addEventListener('load', function (e) {
+        const base64Img = e.target.result
+        cb && cb(base64Img, downloadImg)
+        reader = null
+      })
+      reader.readAsDataURL(file)
+
+    }
+    // 压缩
+    function compress (base64Img, cb) {
+      let imgW, imgH;
+      const _img = new Image()
+      _img.src = base64Img
+      _img.addEventListener('load', function (e) {
+        let ratio; // 图片长宽比
+        let needCompress = false // 是否需要压缩判断
+        imgW = _img.naturalWidth // 图像的原始宽度
+        imgH = _img.naturalHeight // 图像的原始高度
+        // 图片宽高任意超过我们设置的最大边界 进行压缩
+        if (max < _img.naturalHeight || max < _img.naturalWidth) {
+          needCompress = true
+          if (_img.naturalHeight < _img.naturalWidth) {
+            ratio = _img.naturalWidth / max
+          } else {
+            ratio = _img.naturalHeight / max
+          }
+          imgW = imgW / ratio
+          imgH = imgH / ratio
+        }
+        // 创建canvas元素 渲染处理尺寸后的图片
+        const _canvas = document.createElement('canvas')
+        _canvas.setAttribute('id', 'compressImg')
+        _canvas.width = imgW
+        _canvas.height = imgH
+        // 隐藏元素
+        _canvas.style.visibility = 'hidden'
+        document.body.appendChild(_canvas)
+        const ctx = _canvas.getContext('2d')
+        ctx.clearRect(0, 0, imgW, imgH)
+        ctx.drawImage(_img, 0, 0, imgW, imgH)
+        if (!fileName || !fileType) {
+          return _canvas.remove()
+        }
+        // 方法返回一个包含图片展示的 data URI 
+        // (type, encoderOptions) 图片格式 图片质量0-1之间
+        const compressImg = _canvas.toDataURL(fileType, 0.8)
+        cb && cb(compressImg)
+        _canvas.remove() // 移除元素
+      })
+    }
+    // 创建a标签触发点击事件进行下载
+    function downloadImg (file) {
+      const _a = document.createElement('a')
+      _a.href = file
+      _a.setAttribute('download', fileName) // 使用读取文件保存的文件名
+      _a.click()
+    }
+    uploadDom.addEventListener('change', function (e) {
+      const [file] = e.target.files
+      if (!file) {
+        return
+      }
+      const { type: _fileType, size: _fileSize, name: _fileName } = file
+      // 文件类型检查
+      if (!ACCEPT.includes(_fileType)) {
+        uploadDom.value = ''
+        return console.error('不支持当前文件格式')
+      }
+      fileType = _fileType
+      fileName = _fileName
+      // 文件体积检查
+      if (_fileSize > maxSize) {
+        uploadDom.value = ''
+        return console.error('当前文件体积过大')
+      }
+      // base64转化
+      converImgToBase64(file, compress)
+    })
+  </script>
+</body>
+</html>

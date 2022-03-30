@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>图片预览</title>
+</head>
+<body>
+  <div>
+    <input type="file" id="upload" />
+    <button onclick="updateRotate()">旋转</button>
+  </div>
+  <canvas id="imgCanvas" width="400" height="400">
+    您的浏览器不支持canvas，请更换浏览器
+  </canvas>
+  <canvas id="magnifierCanvas" width="400" height="400">
+    您的浏览器不支持canvas，请更换浏览器
+  </canvas>
+  <br/>
+  <script>
+    const ACCEPT = ['image/jpg', 'image/png', 'image/jpeg'] // 允许的图片格式
+    const uploadDom = document.getElementById('upload') // 获取upload元素
+    const canvasDom = document.getElementById('imgCanvas') // 获取画布元素
+    const ctx = canvasDom.getContext('2d') // 获取canvas对象 2D绘图的上下文
+    const magnifierDom = document.getElementById('magnifierCanvas') // 获取画布元素
+    const magnifierCtx = magnifierDom.getContext('2d') // 获取canvas对象 2D绘图的上下文
+    const imgBoxSize = 400 // 容器尺寸
+    const xpos = imgBoxSize / 2
+    const ypos = imgBoxSize / 2
+    let currentRotate = 0 // 当前旋转角度
+    let base64 = null // 缓存所选图片
+    let magnifierX = 120
+    let magnifierY = 120
+    let curTime = null
+    function draw (base64Img) {
+      ctx.clearRect(0, 0, 400, 400)
+      const img = new Image()
+      img.src = base64Img || base64
+      // img.crossOrigin = '*' // 开启CORS功能
+      // 图片加载
+      img.onload = function () {
+        // 旋转图片
+        if (currentRotate > 0) {
+          ctx.save() // 保存当前的绘图状态
+          // canvas 中的所有几何变换针对的不是绘制的图形，而是针对画布本身
+          ctx.translate(xpos, ypos) // 调整画布初始点位置
+          ctx.rotate(currentRotate * Math.PI / 180) // 旋转当前的绘图
+          ctx.translate(-xpos, -ypos) // 复原
+        }
+        // 绘制
+        ctx.drawImage(img, 0, 0, imgBoxSize, imgBoxSize)
+        drawMagnifier()
+        if (currentRotate > 0) {
+          ctx.restore() // 恢复之前保存的绘图状态
+        }
+        if (currentRotate > 270) {
+          currentRotate = 0
+        }
+      }
+    }
+    // 绘制放大区域
+    function drawMagnifier () {
+      magnifierCtx.clearRect(0, 0, 400, 400)
+      const img = new Image()
+      img.src = base64
+      // 图片加载
+      img.onload = function () {
+        const scaleX = img.naturalWidth / imgBoxSize
+        const scaleY = img.naturalHeight / imgBoxSize
+        // 旋转后 绘制坐标计算 后续补充
+        if (currentRotate > 0) {
+          magnifierCtx.save() // 保存当前的绘图状态
+          magnifierCtx.translate(xpos, ypos) // 调整画布初始点位置
+          magnifierCtx.rotate(currentRotate * Math.PI / 180) // 旋转当前的绘图
+          magnifierCtx.translate(-xpos, -ypos) // 复原
+        }
+        // 绘制放大
+        magnifierCtx.drawImage(img, (magnifierX-25) * scaleX, (magnifierY-25) * scaleY, 50 * scaleX, 50 * scaleY, 0, 0, imgBoxSize, imgBoxSize)
+        if (currentRotate > 0) {
+          magnifierCtx.restore() // 恢复之前保存的绘图状态
+        }
+      }
+    }
+    // 更新旋转角度
+    function updateRotate () {
+      if (!base64) return
+      currentRotate += 90
+      draw()
+    }
+    canvasDom.onmousemove = function (e) {
+      if (!base64 || (curTime && (Date.now() - curTime) < 20)) return
+      e.stopPropagation()
+      curTime = Date.now()
+      const clientRect = e.currentTarget.getBoundingClientRect()
+      magnifierX = e.clientX - clientRect.left
+      magnifierY = e.clientY - clientRect.top
+      drawMagnifier()
+    }
+    uploadDom.addEventListener('change', function (e) {
+      const [file] = e.target.files
+      if (!file) {
+        return
+      }
+      const { type: _fileType, name: _fileName } = file
+      // 文件类型检查
+      if (!ACCEPT.includes(_fileType)) {
+        uploadDom.value = ''
+        return console.error('不支持当前文件格式')
+      }
+      const reader = new FileReader()
+      reader.readAsDataURL(file)//转化成base64数据类型
+      reader.onload = function(e) {
+        if (e.target.result) {
+          base64 = e.target.result
+          draw(base64)
+        }
+      }
+    })
+  </script>
+</body>
+</html>
